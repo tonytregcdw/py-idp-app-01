@@ -1,0 +1,5 @@
+flask>=3.0
+gunicorn>=22.0
+auth0-server-python>=0.1.0
+python-dotenv>=1.0
+markupsafe>=2.1
