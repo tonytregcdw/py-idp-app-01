@@ -16,14 +16,6 @@ load_dotenv()
 app = Flask(__name__)
 
 
-def get_base_url():
-    """Derive base URL from Azure's WEBSITE_HOSTNAME, or fall back to APP_BASE_URL for local dev."""
-    hostname = env.get("WEBSITE_HOSTNAME")
-    if hostname:
-        return f"https://{hostname}"
-    return env.get("APP_BASE_URL", "http://localhost:5000")
-
-
 # The SDK requires two stores: one for session data (user profile, tokens)
 # and one for short-lived OAuth flow data (PKCE verifiers, state params).
 # Both extend AbstractDataStore which provides encrypt() and decrypt().
@@ -73,8 +65,8 @@ def auth0():
         domain=env.get("AUTH0_DOMAIN"),
         client_id=env.get("AUTH0_CLIENT_ID"),
         client_secret=env.get("AUTH0_CLIENT_SECRET"),
-        redirect_uri=get_base_url() + "/callback",
-        authorization_params={"scope": "openid profile email", "connection": env.get("AUTH0_CONNECTION", "adfs")},
+        redirect_uri=env.get("APP_BASE_URL") + "/callback",
+        authorization_params={"scope": "openid profile email"},
         secret=session_secret,
         state_store=CookieStore(session_secret, "_a0_session", 259200, StateData),  # 3 days
         transaction_store=CookieStore(session_secret, "_a0_tx", 300, TransactionData),  # 5 min
@@ -129,12 +121,12 @@ async def callback():
 @app.route("/logout")
 async def logout():
     url = await auth0().logout(
-        options=LogoutOptions(return_to=get_base_url()),
+        options=LogoutOptions(return_to=env.get("APP_BASE_URL")),
         store_options={"request": request},
     )
     return redirect(url)
 
 
 if __name__ == "__main__":
-    url = urlparse(get_base_url())
+    url = urlparse(env.get("APP_BASE_URL"))
     app.run(host=url.hostname, port=url.port or 5000)
