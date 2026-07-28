@@ -74,7 +74,7 @@ def auth0():
         client_id=env.get("AUTH0_CLIENT_ID"),
         client_secret=env.get("AUTH0_CLIENT_SECRET"),
         redirect_uri=get_base_url() + "/callback",
-        authorization_params={"scope": "openid profile email"},
+        authorization_params={"scope": "openid profile email", "connection": env.get("AUTH0_CONNECTION", "adfs")},
         secret=session_secret,
         state_store=CookieStore(session_secret, "_a0_session", 259200, StateData),  # 3 days
         transaction_store=CookieStore(session_secret, "_a0_tx", 300, TransactionData),  # 5 min
